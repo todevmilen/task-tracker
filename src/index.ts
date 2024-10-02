@@ -25,9 +25,10 @@ const handleAdd = (task: string): void => {
   const tasks: Task[] = handleListTasks(false);
 
   const maxId = tasks.length > 0 ? Math.max(...tasks.map(task => task.id)) : 0;
+  const ID = maxId + 1;
 
   const newTask: Task = {
-    id: maxId + 1,
+    id: ID,
     description: task,
     status: 'TODO',
     createdAt: new Date(),
@@ -35,6 +36,7 @@ const handleAdd = (task: string): void => {
 
   tasks.push(newTask);
   fs.writeFileSync('tasks.json', JSON.stringify(tasks, null, 2));
+  console.log(`Task added successfully (ID: ${ID})`);
 };
 
 const handleUpdate = (id: number, taskDescription: string): void => {
