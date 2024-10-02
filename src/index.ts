@@ -65,13 +65,22 @@ const handleDelete = (id: number): void => {
   fs.writeFileSync('tasks.json', JSON.stringify(newTasks, null, 2));
 };
 
-const handleListTasks = (shouldLog: boolean): Task[] => {
+const handleListTasks = (shouldLog: boolean, status?: Status): Task[] => {
   try {
-    const tasks = fs.readFileSync('tasks.json', 'utf8');
+    const data = fs.readFileSync('tasks.json', 'utf8');
+    const tasks: Task[] = JSON.parse(data);
     if (shouldLog) {
+      if (status) {
+        console.log(
+          tasks.filter(
+            task => task.status === status.replace('-', '_').toUpperCase()
+          )
+        );
+        return [];
+      }
       console.log(tasks);
     }
-    return JSON.parse(tasks);
+    return tasks;
   } catch (error: any) {
     const nodeErr: NodeJS.ErrnoException = error;
     if (nodeErr.code === 'ENOENT') {
@@ -111,7 +120,7 @@ switch (option) {
     handleDelete(parseInt(args[3]));
     break;
   case EOptions.LIST:
-    handleListTasks(true);
+    handleListTasks(true, args[3] as Status);
     break;
   case EOptions.DONE:
     handleUpdateStatus(parseInt(args[3]), 'DONE');
