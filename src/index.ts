@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+
 const args = process.argv;
 
 enum EOptions {
@@ -9,22 +11,61 @@ enum EOptions {
   LIST = 'list',
 }
 
+interface Task {
+  id: number;
+  description: string;
+  status: 'TODO' | 'IN_PROGRESS' | 'DONE';
+  createdAt: Date;
+  updatedAt?: Date;
+}
+
 const option = args[2] as EOptions;
 
-const handleAdd = (task: string) => {
-  console.log(task);
+const handleAdd = (task: string): void => {
+  const tasks: Task[] = handleListTasks(false);
+
+  const maxId = tasks.length > 0 ? Math.max(...tasks.map(task => task.id)) : 0;
+
+  const newTask: Task = {
+    id: maxId + 1,
+    description: task,
+    status: 'TODO',
+    createdAt: new Date(),
+  };
+
+  tasks.push(newTask);
+  fs.writeFileSync('tasks.json', JSON.stringify(tasks, null, 2));
 };
 
-const handleUpdate = (id: number, task: string) => {
+const handleUpdate = (id: number, task: string): void => {
   console.log('id', id, 'task', task);
 };
 
-const handleDelete = (id: number) => {
-  console.log('DELETE', id);
+const handleDelete = (id: number): void => {
+  const tasks: Task[] = handleListTasks(false);
+
+  const newTasks = tasks.filter(task => task.id !== id);
+
+  fs.writeFileSync('tasks.json', JSON.stringify(newTasks, null, 2));
 };
 
-const handleListTasks = () => {
-  console.log('LIST ALL TASKS');
+const handleListTasks = (shouldLog: boolean): Task[] => {
+  try {
+    const tasks = fs.readFileSync('tasks.json', 'utf8');
+    if (shouldLog) {
+      console.log(tasks);
+    }
+    return JSON.parse(tasks);
+  } catch (error: any) {
+    const nodeErr: NodeJS.ErrnoException = error;
+    if (nodeErr.code === 'ENOENT') {
+      console.log('File not found. Creating a new one.');
+      fs.writeFileSync('tasks.json', '');
+      return [];
+    } else {
+      throw error;
+    }
+  }
 };
 
 const handleDone = (id: number) => {
@@ -46,7 +87,7 @@ switch (option) {
     handleDelete(parseInt(args[3]));
     break;
   case EOptions.LIST:
-    handleListTasks();
+    handleListTasks(true);
     break;
   case EOptions.DONE:
     handleDone(parseInt(args[3]));
