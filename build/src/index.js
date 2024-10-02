@@ -24,8 +24,18 @@ const handleAdd = (task) => {
     tasks.push(newTask);
     fs.writeFileSync('tasks.json', JSON.stringify(tasks, null, 2));
 };
-const handleUpdate = (id, task) => {
-    console.log('id', id, 'task', task);
+const handleUpdate = (id, taskDescription) => {
+    const tasks = handleListTasks(false);
+    const updatedTasks = tasks.map(task => {
+        if (task.id === id) {
+            return {
+                ...task,
+                description: taskDescription,
+            };
+        }
+        return task;
+    });
+    fs.writeFileSync('tasks.json', JSON.stringify(updatedTasks, null, 2));
 };
 const handleDelete = (id) => {
     const tasks = handleListTasks(false);
