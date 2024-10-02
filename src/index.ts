@@ -11,10 +11,12 @@ enum EOptions {
   LIST = 'list',
 }
 
+type Status = 'TODO' | 'IN_PROGRESS' | 'DONE';
+
 interface Task {
   id: number;
   description: string;
-  status: 'TODO' | 'IN_PROGRESS' | 'DONE';
+  status: Status;
   createdAt: Date;
   updatedAt?: Date;
 }
@@ -82,12 +84,20 @@ const handleListTasks = (shouldLog: boolean): Task[] => {
   }
 };
 
-const handleDone = (id: number) => {
-  console.log('DONE', id);
-};
+const handleUpdateStatus = (id: number, status: Status) => {
+  const tasks: Task[] = handleListTasks(false);
 
-const handleInProgress = (id: number) => {
-  console.log('INPROGRESS', id);
+  const updatedTasks = tasks.map(task => {
+    if (task.id === id) {
+      return {
+        ...task,
+        status: status,
+      };
+    }
+    return task;
+  });
+
+  fs.writeFileSync('tasks.json', JSON.stringify(updatedTasks, null, 2));
 };
 
 switch (option) {
@@ -104,11 +114,17 @@ switch (option) {
     handleListTasks(true);
     break;
   case EOptions.DONE:
-    handleDone(parseInt(args[3]));
+    handleUpdateStatus(parseInt(args[3]), 'DONE');
     break;
   case EOptions.INPROGESS:
-    handleInProgress(parseInt(args[3]));
+    handleUpdateStatus(parseInt(args[3]), 'IN_PROGRESS');
     break;
   default:
+    console.log(
+      `Cannot find a flag: ${option}\nPlease use one of the following:`
+    );
+    for (const [key, value] of Object.entries(EOptions)) {
+      console.log(`==> ${value}`);
+    }
     break;
 }
